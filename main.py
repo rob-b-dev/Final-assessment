@@ -17,7 +17,7 @@ class DisneylandReviewAnalyser:
         with open(self.file_path, newline='', encoding='utf-8') as csvfile:
             # Use DictReader to automatically assign field names from the header.
             reader = csv.DictReader(csvfile)
-            # Loop through and append data
+            # Loop through and append data.
             for row in reader:
                 self.data.append(row)
 
@@ -35,10 +35,10 @@ class DisneylandReviewAnalyser:
     def gather_park(self):
         park_set = {row['Branch'] for row in self.data} # Create set to ensure no repetition.
 
-        # Create dictionary to map latters to parks
+        # Create dictionary to map latters to parks.
         park_options = {chr(65 + i): park for i, park in enumerate(park_set)}
 
-        # Continuous loop until break
+        # Continuous loop until break.
         while True:
             print("Select the Park you wish to see the Reviews for:")
             for letter, branch in park_options.items():
@@ -95,7 +95,7 @@ class DisneylandReviewAnalyser:
                 print("Invalid option. Please try again.")
 
     
-    def gather_average_score(self, dataset_scope): # Dataset scope used for flexibility.
+    def calculate_average_score(self, dataset_scope): # Dataset scope used for flexibility.
         total_score = sum(int(row['Rating']) for row in dataset_scope)
         average_score = total_score / len(dataset_scope)
         return round(average_score, 1)
@@ -180,17 +180,18 @@ Please enter one of the following options:
         choice = input("Do you want to view the average for [A]ll years or a [S]pecific year? ").strip().upper()
 
         if choice == 'S':
-            # Gather specific year
+            # Gather specific year.
             selected_year = self.gather_year(park_reviews, 'Average Score')
-            park_reviews_by_year = [row for row in park_reviews if row['Year_Month'].startswith(selected_year)]
-            average_score = self.gather_average_score(park_reviews_by_year)
-            print(f"Average Score for {selected_park} in the Year {selected_year}: {average_score}")
+            year_reviews = [row for row in park_reviews if row['Year_Month'].startswith(selected_year)]
+            average_score = self.calculate_average_score(year_reviews)
+            print(f"Average Score for the Park {selected_park} in the Year {selected_year}: {average_score}")
         else:
-            # Gather all years as set and sort
-            years_set = sorted({row['Year_Month'].split('-')[0] for row in park_reviews if row['Year_Month'] != 'missing'})
-            for year in years_set:
-                reviews_for_year = [row for row in park_reviews if row['Year_Month'].startswith(year)]
-                average_score = self.gather_average_score(reviews_for_year)
+            # Gather all years as set and sort.
+            all_years = sorted({row['Year_Month'].split('-')[0] for row in park_reviews if row['Year_Month'] != 'missing'})
+            # Loop through each year and gather average score for each year.
+            for year in all_years:
+                year_reviews = [row for row in park_reviews if row['Year_Month'].startswith(year)]
+                average_score = self.calculate_average_score(year_reviews)
                 print(f"{year}: {average_score}")
 
 
@@ -204,16 +205,16 @@ Please enter one of the following options:
         if choice == 'S':
             # Gather specific year from helper function.
             selected_year = self.gather_year(location_reviews, 'Average Score')
-            reviews_for_year = [row for row in self.data if row['Year_Month'].startswith(selected_year)]
-            average_score = self.gather_average_score(reviews_for_year)
-            print(f"Average Score for parks in {selected_location} in the Year {selected_year}: {average_score}")
+            year_reviews = [row for row in location_reviews if row['Year_Month'].startswith(selected_year)]
+            average_score = self.calculate_average_score(year_reviews)
+            print(f"Average Score for all parks in {selected_location} in the Year {selected_year}: {average_score}")
         else:
             # Gather all years as set and sort.
-            selected_years = sorted({row['Year_Month'].split('-')[0] for row in location_reviews if row['Year_Month'] != 'missing'})
+            all_years = sorted({row['Year_Month'].split('-')[0] for row in location_reviews if row['Year_Month'] != 'missing'})
             # Loop through each year and gather average score for each year.
-            for year in selected_years:
-                reviews_for_year = [row for row in location_reviews if row['Year_Month'].startswith(year)]
-                average_score = self.gather_average_score(reviews_for_year)
+            for year in all_years:
+                year_reviews = [row for row in location_reviews if row['Year_Month'].startswith(year)]
+                average_score = self.calculate_average_score(year_reviews)
                 print(f"{year}: {average_score}")
 
 
@@ -225,9 +226,9 @@ Disneyland Review Analyser
 --------------------------
 ''')
 
-        self.load_data()  # Load data on program start
+        self.load_data()  # Load data on program start.
 
-        # Loop continuously until break
+        # Loop continuously until break.
         while True:
             try:
                 menu_choice = input('''
@@ -253,7 +254,7 @@ Please enter the letter which corresponds with your desired menu choice:
                 continue
 
 
-# Run main function - entry point
+# Run main function - entry point.
 if __name__ == '__main__':
     file_path = './data/disneyland_reviews.csv'  # Define file path.
 
