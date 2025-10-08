@@ -32,13 +32,10 @@ class DisneylandReviewAnalyser:
         raise StopIteration # Exit at the programs first function call - main menu in this instance.
     
 
-    def gather_reviews_by_park(self):
-        park_set = set() # Create set to ensure no repetition.
+    def gather_park(self):
+        park_set = {row['Branch'] for row in self.data} # Create set to ensure no repetition.
 
-        for row in self.data:
-            park_set.add(row['Branch']) # Loop through and add branches of parks to set.
-
-        # Map letters to park names
+        # Create dictionary to map latters to parks
         park_options = {chr(65 + i): park for i, park in enumerate(park_set)}
 
         # Continuous loop until break
@@ -57,8 +54,8 @@ class DisneylandReviewAnalyser:
                 print("Invalid option. Please try again.")
         
 
-    def gather_reviews_by_location(self, dataset_scope):
-        # Gather locations from park_reviews and sort alphabetically.
+    def gather_location(self, dataset_scope):
+        # Gather locations as set and sort alphabetically.
         locations = sorted({row['Reviewer_Location'] for row in dataset_scope}) # Data gathered from argument 'dataset_scope', as the scope can vary. It could be the entire dataset or a segment of it.
         
         # Loop through index and values of sorted locations.
@@ -77,8 +74,9 @@ class DisneylandReviewAnalyser:
 
 
     def gather_year(self, dataset_scope, placeholder): # Dataset scope used for flexibility.
-        dates = {row['Year_Month'] for row in dataset_scope} # Dates gathered from desired scope
-        years = sorted({date.split('-')[0] for date in dates if date != 'missing' and '-' in date}) # Set
+        # Dates and years gathered from desired scope as sets to ensure no unnecessary repitition.
+        dates = {row['Year_Month'] for row in dataset_scope}
+        years = sorted({date.split('-')[0] for date in dates if date != 'missing'})
         
         year_options = {chr(65 + i): park for i, park in enumerate(years)}
 
@@ -96,10 +94,11 @@ class DisneylandReviewAnalyser:
             else:
                 print("Invalid option. Please try again.")
 
-        
     
     def gather_average_score(self, dataset_scope): # Dataset scope used for flexibility.
-        pass
+        total_score = sum(int(row['Rating']) for row in dataset_scope)
+        average_score = total_score / len(dataset_scope)
+        return round(average_score, 1)
 
 
     # -------------------- Sub-menu handlers --------------------
@@ -120,9 +119,9 @@ Please enter one of the following options:
                 elif view_option == 'B':
                     self.view_reviews_by_park_and_location()
                 elif view_option == 'C':
-                    self.average_score_per_year_by_park()
+                    self.view_average_score_per_year_by_park()
                 elif view_option == 'D':
-                    self.average_score_per_year_by_location()
+                    self.view_average_score_per_year_by_location()
                 elif view_option == 'X':
                     self.return_to_main_menu()
                 else:
@@ -160,35 +159,62 @@ Please enter one of the following options:
 
     # -------------------- View data methods --------------------
     def view_reviews_by_park(self):
-        selected_park = self.gather_reviews_by_park()
+        selected_park = self.gather_park()
         [print(row) for row in self.data if row['Branch'] == selected_park]
 
 
     def view_reviews_by_park_and_location(self):
         # Gather reviews based on park branch.
-        selected_park = self.gather_reviews_by_park()
+        selected_park = self.gather_park()
         park_reviews = [row for row in self.data if row['Branch'] == selected_park]
 
-        selected_location = self.gather_reviews_by_location(park_reviews)
-        for row in park_reviews:
-            if row['Reviewer_Location'] == selected_location:
-                print(row)
+        selected_location = self.gather_location(park_reviews)
+        [print(row) for row in park_reviews if row['Reviewer_Location'] == selected_location]
 
 
-    def average_score_per_year_by_park(self):
-        selected_park = self.gather_reviews_by_park()
+    def view_average_score_per_year_by_park(self):
+        selected_park = self.gather_park()
         park_reviews = [row for row in self.data if row['Branch'] == selected_park]
 
-        selected_year = self.gather_year(park_reviews, 'Average Score')
-        
-        # Filter rows where Year_Month starts with the selected year
-        for row in park_reviews:
-            if row['Year_Month'] != 'missing' and row['Year_Month'].startswith(selected_year):
-                print(row)
+        # Allow users to choose between a specific year or all years.
+        choice = input("Do you want to view the average for [A]ll years or a [S]pecific year? ").strip().upper()
+
+        if choice == 'S':
+            # Gather specific year
+            selected_year = self.gather_year(park_reviews, 'Average Score')
+            park_reviews_by_year = [row for row in park_reviews if row['Year_Month'].startswith(selected_year)]
+            average_score = self.gather_average_score(park_reviews_by_year)
+            print(f"Average Score for {selected_park} in the Year {selected_year}: {average_score}")
+        else:
+            # Gather all years as set and sort
+            years_set = sorted({row['Year_Month'].split('-')[0] for row in park_reviews if row['Year_Month'] != 'missing'})
+            for year in years_set:
+                reviews_for_year = [row for row in park_reviews if row['Year_Month'].startswith(year)]
+                average_score = self.gather_average_score(reviews_for_year)
+                print(f"{year}: {average_score}")
 
 
-    def average_score_per_year_by_location(self):
-        print('Showing average Score per Year by Location (functionality pending) ...')
+    def view_average_score_per_year_by_location(self):
+        selected_location = self.gather_location(self.data)
+        location_reviews = [row for row in self.data if row['Reviewer_Location'] == selected_location]
+
+        # Allow users to choose between a specific year or all years.
+        choice = input("Do you want to view the average for [A]ll years or a [S]pecific year? ").strip().upper()
+
+        if choice == 'S':
+            # Gather specific year from helper function.
+            selected_year = self.gather_year(location_reviews, 'Average Score')
+            reviews_for_year = [row for row in self.data if row['Year_Month'].startswith(selected_year)]
+            average_score = self.gather_average_score(reviews_for_year)
+            print(f"Average Score for parks in {selected_location} in the Year {selected_year}: {average_score}")
+        else:
+            # Gather all years as set and sort.
+            selected_years = sorted({row['Year_Month'].split('-')[0] for row in location_reviews if row['Year_Month'] != 'missing'})
+            # Loop through each year and gather average score for each year.
+            for year in selected_years:
+                reviews_for_year = [row for row in location_reviews if row['Year_Month'].startswith(year)]
+                average_score = self.gather_average_score(reviews_for_year)
+                print(f"{year}: {average_score}")
 
 
     # -------------------- Main menu --------------------
