@@ -1,4 +1,5 @@
 import csv  # Import csv module to handle csv data.
+import matplotlib.pyplot as plt
 
 
 # Class to load, manage and display Disneyland review data.
@@ -143,9 +144,9 @@ Please enter one of the following options:
 ''').strip().upper()
 
                 if visualise_option == 'A':
-                    print('Visualising: Most Reviewed Parks')
+                    self.visualise_reviewcount_by_park()
                 elif visualise_option == 'B':
-                    print('Visualising: Park Ranking by Nationality')
+                    self.visualise_toplocations_by_average_score()
                 elif visualise_option == 'C':
                     print('Visualising: Most Popular Month by Park')
                 elif visualise_option == 'X':
@@ -216,6 +217,69 @@ Please enter one of the following options:
                 year_reviews = [row for row in location_reviews if row['Year_Month'].startswith(year)]
                 average_score = self.calculate_average_score(year_reviews)
                 print(f"{year}: {average_score}")
+    
+
+    def visualise_reviewcount_by_park(self):
+        park_set = {row['Branch'] for row in self.data} # Create set to ensure no repetition.
+        # Create dictionary to map review numbers to park.
+        branch_counts = {park: len([row for row in self.data if row['Branch'] == park]) for park in park_set}
+        # Convert to list.
+        sizes = list(branch_counts.values())
+        
+        plt.figure(figsize=(10, 8))
+        wedges, texts, autotexts = plt.pie(
+            sizes,
+            autopct=lambda p: int(p * sum(sizes) / 100) # Allow sizes to be displayed in wedges.
+            )
+
+        labels = [branch for branch in branch_counts.keys()]
+        plt.legend(wedges, labels, title="Parks", loc="center left")
+        plt.setp(autotexts, size=10, color='white', weight='bold')
+        plt.title('Number of Reviews per Park')
+        plt.show()
+
+
+    def visualise_toplocations_by_average_score(self):
+        selected_park = self.gather_park()
+        park_reviews = [row for row in self.data if row['Branch'] == selected_park]
+
+        # List comprehension to reduce code - creates dictioanry of average values assigned to each location for a specific park.
+        location_average_scores = { location: sum(int(row['Rating']) for row in park_reviews if row['Reviewer_Location'] == location) / 
+                                    len([row for row in park_reviews if row['Reviewer_Location'] == location]) for location in {row['Reviewer_Location'] for row in park_reviews}
+                                    }
+
+        # Gather top 10 average values.
+        top_10_average_scores = sorted(location_average_scores.items(), key=lambda x: x[1], reverse=True)[:10]
+
+        # Gather top 20 average values.
+        top_10_average_scores = sorted(location_average_scores.items(), key=lambda x: x[1], reverse=True)[10:20]
+
+        # Unpack locations and average_scores from top 10 values.
+        locations, average_scores = zip(*top_10_average_scores)
+        
+        def defaultOptions():
+            plt.ylabel('Average Score')
+            plt.xlabel('Locations')
+            plt.title(f'Top 10 Locations by Average Score for {selected_park}')
+            plt.xticks(rotation=45, ha='right')
+            plt.show()
+
+        plt.figure(figsize=(10, 5))
+        plt.bar(locations, average_scores, color='blue', width=0.3)
+        defaultOptions()
+
+        plt.figure(figsize=(10, 5))
+        plt.bar(locations, average_scores, color='blue', width=0.3)
+        defaultOptions()
+
+    
+    def visualise_average_score_per_month(self):
+        selected_park = self.gather_park()
+        park_reviews = [row for row in self.data if row['Branch'] == selected_park]
+
+        # while True:
+
+        #     choice = input('Would you like to display the Average Rating across Months from a [S]pecific Year or [A]ll Years? ').strip().upper()
 
 
     # -------------------- Main menu --------------------

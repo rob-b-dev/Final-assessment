@@ -61,7 +61,6 @@ class DisneylandReviewAnalyser:
                 print("Invalid option. Please try again.")
         
 
-
     def gather_reviews_by_location(self, dataset_scope):
         # Gather locations from park_reviews and sort alphabetically.
         locations = sorted({row['Reviewer_Location'] for row in dataset_scope}) # Data gathered from argument 'dataset_scope', as the scope can vary. It could be the entire dataset or a segment of it.
@@ -106,7 +105,6 @@ Please enter one of the following options:
             else:
                 print('Invalid option. Please try again.')
             
-
 
     def visualise_data_menu(self):
         while True:
