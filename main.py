@@ -22,6 +22,7 @@ class DisneylandReviewAnalyser:
             for row in reader:
                 self.data.append(row)
 
+
         # Confirm successful load.
         print('Finished reading the dataset.')
         print(f'Number of rows in dataset: {len(self.data)}')
@@ -148,7 +149,7 @@ Please enter one of the following options:
                 elif visualise_option == 'B':
                     self.visualise_toplocations_by_average_score()
                 elif visualise_option == 'C':
-                    print('Visualising: Most Popular Month by Park')
+                    self.visualise_average_score_per_month()
                 elif visualise_option == 'X':
                     self.return_to_main_menu()
                 else:
@@ -241,11 +242,17 @@ Please enter one of the following options:
 
     def visualise_toplocations_by_average_score(self):
 
-        def defaultOptions():
+        def defaultOptions(ranking, bars, locations, location_total_reviews):
             plt.ylabel('Average Score')
             plt.xlabel('Locations')
-            plt.title(f'Top 10 Locations by Average Score for {selected_park}')
+            plt.title(f'Top {ranking} Locations by Average Score for {selected_park} (Review Count included)')
             plt.xticks(rotation=45, ha='right')
+            # Add total reviews above each bar
+            for bar, location in zip(bars, locations):
+                height = bar.get_height()
+                total_reviews = location_total_reviews.get(location, 0)
+                plt.text(bar.get_x() + bar.get_width()/2, height + 0.05,
+                        f'{total_reviews}', ha='center', va='bottom', fontsize=7, color='black')
             plt.show()
 
         selected_park = self.gather_park()
@@ -255,23 +262,26 @@ Please enter one of the following options:
         location_average_scores = { location: sum(int(row['Rating']) for row in park_reviews if row['Reviewer_Location'] == location) / 
                                     len([row for row in park_reviews if row['Reviewer_Location'] == location]) for location in {row['Reviewer_Location'] for row in park_reviews}
                                     }
+        
+        # Total review count gathered for each location to show more data as some locations have a single 5 star review.
+        location_total_reviews = {location: len([row for row in park_reviews if row['Reviewer_Location'] == location]) for location in {row['Reviewer_Location'] for row in park_reviews}}
 
         # Gather top 10 average values.
         average_scores_sorted = sorted(location_average_scores.items(), key=lambda x: x[1], reverse=True)
 
-        # Gather top 10 values as well as top 20 to show more fluctuation.
+        # Gather top 10 values as well as top 50 to show more fluctuation.
         top_10 = average_scores_sorted[:10]
-        top_20 = average_scores_sorted[10:20]
+        top_50 = average_scores_sorted[:50]
         
         locations_10, average_scores_10 = zip(*top_10)
         plt.figure(figsize=(10, 5))
-        plt.bar(locations_10, average_scores_10, color='steelblue', width=0.3)
-        defaultOptions()
+        bars = plt.bar(locations_10, average_scores_10, color='steelblue', width=0.3)
+        defaultOptions('10', bars, locations_10, location_total_reviews)
 
-        locations_20, average_scores_20 = zip(*top_20)
+        locations_50, average_scores_50 = zip(*top_50)
         plt.figure(figsize=(10, 5))
-        plt.bar(locations_20, average_scores_20, color='teal', width=0.3)
-        defaultOptions()
+        bars = plt.bar(locations_50, average_scores_50, color='teal', width=0.3)
+        defaultOptions('50', bars, locations_50, location_total_reviews)
 
     
     def visualise_average_score_per_month(self):
@@ -279,7 +289,16 @@ Please enter one of the following options:
         park_reviews = [row for row in self.data if row['Branch'] == selected_park]
 
         # while True:
-        #     choice = input('Would you like to display the Average Rating across Months from a [S]pecific Year or [A]ll Years? ').strip().upper()
+        choice = input('Would you like to display the Average Rating across Months from a [S]pecific Year or [A]ll Years? ').strip().upper()
+
+        if choice == 'S':
+            # Gather specific year from helper function.
+            selected_year = self.gather_year(park_reviews, 'Average Score')
+            year_reviews = [row for row in park_reviews if row['Year_Month'].startswith(selected_year)]
+            # List comprehension to reduce code - creates dictioanry of average values assigned to each month of the specific chosen year.
+            month_average_scores = { month: sum(int(row['Rating']) for row in year_reviews if row['Year_Month'] == month) / 
+                                        len([row for row in year_reviews if row['Year_Month'] == month]) for month in {row['Year_Month'] for row in year_reviews}
+                                        }
 
 
     # -------------------- Main menu --------------------
