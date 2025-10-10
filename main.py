@@ -240,6 +240,14 @@ Please enter one of the following options:
 
 
     def visualise_toplocations_by_average_score(self):
+        
+        def defaultOptions():
+            plt.ylabel('Average Score')
+            plt.xlabel('Locations')
+            plt.title(f'Top 10 Locations by Average Score for {selected_park}')
+            plt.xticks(rotation=45, ha='right')
+            plt.show()
+
         selected_park = self.gather_park()
         park_reviews = [row for row in self.data if row['Branch'] == selected_park]
 
@@ -249,27 +257,19 @@ Please enter one of the following options:
                                     }
 
         # Gather top 10 average values.
-        top_10_average_scores = sorted(location_average_scores.items(), key=lambda x: x[1], reverse=True)[:10]
+        average_scores_sorted = sorted(location_average_scores.items(), key=lambda x: x[1], reverse=True)
 
-        # Gather top 20 average values.
-        top_10_average_scores = sorted(location_average_scores.items(), key=lambda x: x[1], reverse=True)[10:20]
-
-        # Unpack locations and average_scores from top 10 values.
-        locations, average_scores = zip(*top_10_average_scores)
+        top_10 = average_scores_sorted[:10]
+        top_20 = average_scores_sorted[10:20]
         
-        def defaultOptions():
-            plt.ylabel('Average Score')
-            plt.xlabel('Locations')
-            plt.title(f'Top 10 Locations by Average Score for {selected_park}')
-            plt.xticks(rotation=45, ha='right')
-            plt.show()
-
+        locations_10, average_scores_10 = zip(*top_10)
         plt.figure(figsize=(10, 5))
-        plt.bar(locations, average_scores, color='blue', width=0.3)
+        plt.bar(locations_10, average_scores_10, color='blue', width=0.3)
         defaultOptions()
 
+        locations_20, average_scores_20 = zip(*top_20)
         plt.figure(figsize=(10, 5))
-        plt.bar(locations, average_scores, color='blue', width=0.3)
+        plt.bar(locations_20, average_scores_20, color='blue', width=0.3)
         defaultOptions()
 
     
@@ -278,7 +278,6 @@ Please enter one of the following options:
         park_reviews = [row for row in self.data if row['Branch'] == selected_park]
 
         # while True:
-
         #     choice = input('Would you like to display the Average Rating across Months from a [S]pecific Year or [A]ll Years? ').strip().upper()
 
 
