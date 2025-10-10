@@ -34,10 +34,10 @@ class DisneylandReviewAnalyser:
     
 
     def gather_park(self):
-        park_set = {row['Branch'] for row in self.data} # Create set to ensure no repetition.
+        parks = sorted({row['Branch'] for row in self.data}) # Create set to ensure no repetition.
 
         # Create dictionary to map latters to parks.
-        park_options = {chr(65 + i): park for i, park in enumerate(park_set)}
+        park_options = {chr(65 + i): park for i, park in enumerate(parks)}
 
         # Continuous loop until break.
         while True:
@@ -240,7 +240,7 @@ Please enter one of the following options:
 
 
     def visualise_toplocations_by_average_score(self):
-        
+
         def defaultOptions():
             plt.ylabel('Average Score')
             plt.xlabel('Locations')
@@ -259,17 +259,18 @@ Please enter one of the following options:
         # Gather top 10 average values.
         average_scores_sorted = sorted(location_average_scores.items(), key=lambda x: x[1], reverse=True)
 
+        # Gather top 10 values as well as top 20 to show more fluctuation.
         top_10 = average_scores_sorted[:10]
         top_20 = average_scores_sorted[10:20]
         
         locations_10, average_scores_10 = zip(*top_10)
         plt.figure(figsize=(10, 5))
-        plt.bar(locations_10, average_scores_10, color='blue', width=0.3)
+        plt.bar(locations_10, average_scores_10, color='steelblue', width=0.3)
         defaultOptions()
 
         locations_20, average_scores_20 = zip(*top_20)
         plt.figure(figsize=(10, 5))
-        plt.bar(locations_20, average_scores_20, color='blue', width=0.3)
+        plt.bar(locations_20, average_scores_20, color='teal', width=0.3)
         defaultOptions()
 
     
